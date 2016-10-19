@@ -30,19 +30,34 @@ using namespace argparse;
 
 int main(int argc, char* argv[])
 {
-    ArgPars args(argc, argv);
-
-    std::string str;
-    bool isAll = false;
-    bool isList = false;
-
-    args.addArg(str, Arg("func", "", "", "Select benchmarked function.", "", IsArg | IsNeeded));
-    args.addArg(isAll, Arg("all", "-a", "--all", "Select all functions."));
-    args.addArg(isList, Arg("list", "-l", "--list", "List all functions."));
-
-    args.parse();
+    ArgParse args(argc, argv);
+    args.add(Arg("func", "Select benchmarked function.", ""));
+    args.add(Fleg("--all", "-a", "Select all functions."));
+    args.add(Fleg("--list", "-l", "List all functions."));
+    args.add(Fleg("--chose", "-c", "Chose from [A|B|C].", Arg(), HasValueAfterFleg));
+    args.add(Fleg("--file", "-f", "Set filename.", Arg("filename", "Source PNG filename.", "arg-pars.png"), HasNeededValueAfterFleg));
+    args.add(Fleg("--version", "-v", "Get version.", Arg("", "", "3.1415"), HasNeededValueAfterFleg));
+    args.add(Fleg("--run", "", "Run program."));
+    if (!args.parse())
+        std::cout  << args.showHelp() << std::endl;
 
     std::cout  << args.showHelp() << std::endl;
+
+    bool b;
+    args.checkAndReadFleg("--chose", &b);
+    std::cout << b << std::endl;
+
+    std::string fn;
+    args.checkAndReadFleg("--file", &fn);
+    std::cout << fn << std::endl;
+
+    double v;
+    args.checkAndReadFleg("--version", &v);
+    std::cout << v << std::endl;
+
+//    std::string str = args["func"];
+//    bool isAll = stoi(args["all"]);
+//    bool isList = stoi(args["list"]);
 
     return 0;
 }

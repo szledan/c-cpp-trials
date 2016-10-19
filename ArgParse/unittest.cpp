@@ -24,24 +24,10 @@
  */
 
 #include "arg-parse.h"
-#include <iostream>
 
 using namespace argparse;
 
 int main(int argc, char* argv[])
 {
-    ArgPars args(argc, argv);
-    args.addArg(Arg("func", "", "", "Select benchmarked function.", "", IsArg | IsNeeded));
-    args.addArg(Arg("all", "-a", "--all", "Select all functions."));
-    args.addArg(Arg("list", "-l", "--list", "List all functions."));
-    if (!args.parse())
-        std::cout  << args.showHelp() << std::endl;
-
-    std::cout  << args.showHelp() << std::endl;
-
-//    std::string str = args["func"];
-//    bool isAll = stoi(args["all"]);
-//    bool isList = stoi(args["list"]);
-
     return 0;
 }

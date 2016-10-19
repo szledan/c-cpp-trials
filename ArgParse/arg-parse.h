@@ -30,6 +30,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace argparse {
 
@@ -37,10 +38,9 @@ namespace argparse {
 
 enum ArgOptionMask {
     Empty = 0,
-    IsArg = 1 << 0,
-    IsNeeded = 1 << 1,
-    isNeedValue = 1 << 2,
-    IsDefaultSet = 1 << 3,
+    IsArgNeeded = 1 << 0,
+    HasValueAfterFleg = 1 << 1,
+    HasNeededValueAfterFleg = 1 << 2,
 
 };
 
@@ -49,46 +49,63 @@ enum ArgOptionMask {
 struct Arg {
     Arg(const Arg& a);
     Arg(const std::string name_ = "",
-        const std::string sortFleg_ = "",
-        const std::string longFleg_ = "",
         const std::string description_ = "",
         const std::string value_ = "",
-        const int defaultMask = Empty);
+        const int defaultMask = IsArgNeeded);
 
     std::string name;
-    std::string sortFleg;
-    std::string longFleg;
     std::string description;
-    std::string valueStr;
+    std::string value;
+    int optionMask;
+    bool isSet;
+};
+
+// Fleg
+
+struct Fleg {
+    Fleg(const Fleg& a);
+    Fleg(const std::string longFleg_ = "",
+         const std::string sortFleg_ = "",
+         const std::string description_ = "",
+         const Arg arg_ = Arg(),
+         const int defaultMask = Empty);
+
+    std::string longFleg;
+    std::string sortFleg;
+    std::string description;
+    Arg arg;
     int optionMask;
     bool isSet;
 };
 
 // ArgPars
 
-class ArgPars {
+class ArgParse {
 public:
-    ArgPars(int argc, char* argv[]);
+    ArgParse(int argc, char* argv[]);
 
-    void addArg(Arg arg);
+    void add(Arg arg);
+    void add(Fleg fleg);
 
     bool parse();
     const std::string showHelp();
 
-    std::string operator[](const std::string& idx) { return this->_args[idx].valueStr; }
-    std::string value(const std::string& idx, const std::string& defVaule = "0")
+    std::string operator[](const std::size_t& idx) { return _args[idx].value; }
+    const bool checkFleg(const std::string& longFleg)
     {
-        std::string& valueStr = _args[idx].valueStr;
-        return valueStr.empty() ?  defVaule : valueStr;
+        return _flegs[longFleg].isSet;
     }
 
     template<typename T>
-    bool tryRead(T& value, const std::string& idx)
+    const bool checkAndReadFleg(const std::string& longFleg, T* value)
     {
-        std::string& valueStr = _args[idx].valueStr;
+        if (!checkFleg(longFleg))
+            return false;
+
+        std::string& valueStr = _flegs[longFleg].arg.value;
         std::stringstream s;
         s << valueStr;
-        s >> (value);
+        s >> (*value);
         return !s.fail();
     }
 
@@ -98,7 +115,8 @@ private:
     int _argc;
     char** _argv;
     std::string _programName;
-    std::map<std::string, Arg> _args;
+    std::vector<Arg> _args;
+    std::map<std::string, Fleg> _flegs;
 };
 
 } // namespace argparse
