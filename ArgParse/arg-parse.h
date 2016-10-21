@@ -31,51 +31,87 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 namespace argparse {
 
-// ArgOptionMask
+// Value
 
-enum ArgOptionMask {
-    Empty = 0,
-    IsArgNeeded = 1 << 0,
-    HasValueAfterFleg = 1 << 1,
-    HasNeededValueAfterFleg = 1 << 2,
+typedef void (*CallBackFunc)(void);
 
+typedef std::initializer_list<std::string> ChooseList;
+
+struct Value {
+    Value(const Value& v);
+
+    Value(const std::string& defaultValue = "",
+          const std::string& name = "",
+          const std::string& description = "");
+
+    Value(const std::string& defaultValue,
+          const ChooseList& chooseList,
+          const std::string& name = "",
+          const std::string& description = "");
+
+    const bool hasValue() const { return !_str.empty(); }
+    const std::string getChoosesStr(int size = 0) const
+    {
+        std::stringstream ss;
+        std::string end("");
+        if (size) {
+            end = "|...";
+        } else size = _chooseList.size();
+        if (size) {
+            for (int i = 0; i < size; ++i)
+                ss << "|" << _chooseList[i];
+        }
+        return ss.str().substr(1) + end;
+    }
+
+    std::string _str;
+    std::string _name;
+    std::string _description;
+    std::vector<std::string> _chooseList;
+    bool _isValueNeeded;
 };
 
 // Arg
 
-struct Arg {
-    Arg(const Arg& a);
-    Arg(const std::string name_ = "",
-        const std::string description_ = "",
-        const std::string value_ = "",
-        const int defaultMask = IsArgNeeded);
+struct Arg : Value {
+    static const bool IsNeeded = true;
 
-    std::string name;
-    std::string description;
-    std::string value;
-    int optionMask;
-    bool isSet;
+    Arg(const Arg& a);
+
+    Arg(const std::string& name = "",
+        const std::string& description = "",
+        const bool isNeeded = false,
+        const Value& defaultValue = Value());
+
+    bool _isArgNeeded;
+    CallBackFunc _callBackFunc;
 };
 
-// Fleg
+// Flag
 
-struct Fleg {
-    Fleg(const Fleg& a);
-    Fleg(const std::string longFleg_ = "",
-         const std::string sortFleg_ = "",
-         const std::string description_ = "",
-         const Arg arg_ = Arg(),
-         const int defaultMask = Empty);
+struct Flag {
+    Flag(const Flag& f);
 
-    std::string longFleg;
-    std::string sortFleg;
-    std::string description;
-    Arg arg;
-    int optionMask;
-    bool isSet;
+    Flag(const std::string& longFlag= "",
+         const std::string& shortFlag = "",
+         const std::string& description = "",
+         const bool set = false);
+
+    Flag(const std::string& longFlag,
+         const std::string& shortFlag,
+         const std::string& description,
+         const Value value);
+
+    std::string _longFlag;
+    std::string _shortFlag;
+    std::string _description;
+    Value _value;
+    bool _isSet;
+    CallBackFunc _callBackFunc;
 };
 
 // ArgPars
@@ -85,30 +121,36 @@ public:
     ArgParse(int argc, char* argv[]);
 
     void add(Arg arg);
-    void add(Fleg fleg);
+    void add(Arg arg, CallBackFunc callBackFunc);
+
+    void add(Flag flag);
+    void add(Flag flag, CallBackFunc callBackFunc);
 
     bool parse();
     const std::string showHelp();
 
-    std::string operator[](const std::size_t& idx) { return _args[idx].value; }
-    const bool checkFleg(const std::string& longFleg)
+    const bool checkFlag(const std::string& longFlag)
     {
-        return _flegs[longFleg].isSet;
+        return _flags[longFlag]._isSet;
     }
 
     template<typename T>
-    const bool checkAndReadFleg(const std::string& longFleg, T* value)
+    const bool checkFlagAndReadValue(const std::string& longFlag, T* value)
     {
-        if (!checkFleg(longFleg))
+        if (!checkFlag(longFlag))
             return false;
 
-        std::string& valueStr = _flegs[longFleg].arg.value;
+        std::string& valueStr = _flags[longFlag]._value._str;
         std::stringstream s;
         s << valueStr;
         s >> (*value);
         return !s.fail();
     }
 
+    std::string operator[](const std::size_t& idx)
+    {
+        return _args[idx]._str;
+    }
 private:
     const std::string showError(const std::string& errorArg);
 
@@ -116,7 +158,8 @@ private:
     char** _argv;
     std::string _programName;
     std::vector<Arg> _args;
-    std::map<std::string, Fleg> _flegs;
+    std::map<std::string, Flag> _flags;
+    int find(std::string longFlag, std::string shortFlag);
 };
 
 } // namespace argparse

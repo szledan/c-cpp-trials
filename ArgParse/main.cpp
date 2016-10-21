@@ -28,36 +28,35 @@
 
 using namespace argparse;
 
+void allFlagFunc(void)
+{
+    std::cout << "The '--all' or '-a' was set." << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
     ArgParse args(argc, argv);
-    args.add(Arg("func", "Select benchmarked function.", ""));
-    args.add(Fleg("--all", "-a", "Select all functions."));
-    args.add(Fleg("--list", "-l", "List all functions."));
-    args.add(Fleg("--chose", "-c", "Chose from [A|B|C].", Arg(), HasValueAfterFleg));
-    args.add(Fleg("--file", "-f", "Set filename.", Arg("filename", "Source PNG filename.", "arg-pars.png"), HasNeededValueAfterFleg));
-    args.add(Fleg("--version", "-v", "Get version.", Arg("", "", "3.1415"), HasNeededValueAfterFleg));
-    args.add(Fleg("--run", "", "Run program."));
+    args.add(Arg("func", "Select function.", Arg::IsNeeded));
+    args.add(Arg("method", "Select method."));
+    args.add(Flag("--all", "-a", "Select all functions."), &allFlagFunc);
+    args.add(Flag("--list", "-l", "List all functions."));
+    args.add(Flag("--choose", "-c", "Choose from [A|B|C].", Value("A", {"A", "B"})));
+    args.add(Flag("--file", "-f", "Set filename.", Value("arg-pars.png", "filename", "Source PNG filename.")));
+    args.add(Flag("--pi", "-p", "Set pi number.", Value("3.1415")));
+    args.add(Flag("--run", "", "Run program."));
+
     if (!args.parse())
         std::cout  << args.showHelp() << std::endl;
 
     std::cout  << args.showHelp() << std::endl;
 
-    bool b;
-    args.checkAndReadFleg("--chose", &b);
-    std::cout << b << std::endl;
+//    std::string fn;
+//    args.checkAndReadFleg("--file", &fn);
+//    std::cout << fn << std::endl;
 
-    std::string fn;
-    args.checkAndReadFleg("--file", &fn);
-    std::cout << fn << std::endl;
-
-    double v;
-    args.checkAndReadFleg("--version", &v);
-    std::cout << v << std::endl;
-
-//    std::string str = args["func"];
-//    bool isAll = stoi(args["all"]);
-//    bool isList = stoi(args["list"]);
+//    double v;
+//    args.checkAndReadFleg("--version", &v);
+//    std::cout << v << std::endl;
 
     return 0;
 }
