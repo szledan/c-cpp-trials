@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     args.add(Arg("method", "Select method."));
     args.add(Flag("--all", "-a", "Select all functions."), &allFlagFunc);
     args.add(Flag("--list", "-l", "List all functions."));
-    args.add(Flag("--choose", "-c", "Choose from [A|B|C].", Value("A", {"A", "B"})));
+    args.add(Flag("--choose", "-c", "Choose from [A|B|C].", Value("A", {"A", "B", "C"})));
     args.add(Flag("--file", "-f", "Set filename.", Value("arg-pars.png", "filename", "Source PNG filename.")));
     args.add(Flag("--pi", "-p", "Set pi number.", Value("3.1415")));
     args.add(Flag("--run", "", "Run program."));
@@ -54,8 +54,8 @@ int main(int argc, char* argv[])
 //    args.checkAndReadFleg("--file", &fn);
 //    std::cout << fn << std::endl;
 
-//    double v;
-//    args.checkAndReadFleg("--version", &v);
+//    double v = 3.1416;
+//    args.checkAndReadFleg("--pi", &v);
 //    std::cout << v << std::endl;
 
     return 0;

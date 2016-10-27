@@ -87,6 +87,13 @@ struct Arg : Value {
         const bool isNeeded = false,
         const Value& defaultValue = Value());
 
+    void setArg(const std::string& str)
+    {
+        _isSet = true;
+        _str = str;
+    }
+
+    bool _isSet;
     bool _isArgNeeded;
     CallBackFunc _callBackFunc;
 };
@@ -98,8 +105,7 @@ struct Flag {
 
     Flag(const std::string& longFlag= "",
          const std::string& shortFlag = "",
-         const std::string& description = "",
-         const bool set = false);
+         const std::string& description = "");
 
     Flag(const std::string& longFlag,
          const std::string& shortFlag,
@@ -111,6 +117,7 @@ struct Flag {
     std::string _description;
     Value _value;
     bool _isSet;
+    bool _hasValue;
     CallBackFunc _callBackFunc;
 };
 
@@ -159,7 +166,6 @@ private:
     std::string _programName;
     std::vector<Arg> _args;
     std::map<std::string, Flag> _flags;
-    int find(std::string longFlag, std::string shortFlag);
 };
 
 } // namespace argparse
